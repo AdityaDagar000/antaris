@@ -1,13 +1,30 @@
 /**
  * Bharti Research Station - Two-Stage Component Picking & Interaction Engine
- * Implements coarse candidate pruning + narrow exact geometry intersection,
- * isolated hover highlighting, and seamless physical expansion integration.
+ * Interactivity and hover animations restricted STRICTLY to the 32 monitored engineering assets.
  */
 
 import * as THREE from 'three';
 import { ComponentManager, COMPONENT_GROUPS } from './componentManager.js';
 import { setMeshHoverState, setMeshSelectionState, BLUEPRINT_MATERIAL } from './materials.js';
 import { resolveComponentMetadata } from './metadataManager.js';
+
+// The exact 32 monitored engineering components specified in facility requirements
+export const MONITORED_ASSET_NAMES = new Set([
+  // 1. CHP Room Units (18 assets)
+  'EngineCore', 'BearingSystem', 'LubricationSystem', 'CoolingSystem', 'GeneratorSystem', 'FuelSystem',
+  'EngineCore1', 'BearingSystem1', 'LubricationSystem1', 'CoolingSystem1', 'GeneratorSystem1', 'FuelSystem1',
+  'EngineCore2', 'BearingSystem2', 'LubricationSystem2', 'CoolingSystem2', 'GeneratorSystem2', 'FuelSystem2',
+
+  // 2. Water Management (7 assets)
+  'WaterPump', 'ElectricMotor', 'FlexibleCoupling',
+  'HighPressureFeedPump', 'ROMembraneBank', 'PreFilterBank', 'FeedSuctionPiping',
+
+  // 3. Sewage Management (3 assets)
+  'ProcessDischargeLoop', 'RejectConcentrateLoop', 'InstrumentationDrainNetwork',
+
+  // 4. Data & Telecom / Logistics Drives (4 assets)
+  'AzimuthDrive', 'ElevationDrive', 'Gearbox', 'DriveMotor'
+]);
 
 export class GeneratorInteractionManager {
   constructor(scene, camera, domElement) {
@@ -21,12 +38,11 @@ export class GeneratorInteractionManager {
     this.rawPointerY = 0;
     this.pointerActive = false;
 
-    // Two-Stage Picking Data Structures
+    // Two-Stage Picking Data Structures (restricted to monitored components only)
     this.interactiveObjects = [];
     this.componentLookup = new Map(); // uuid -> metadata
     this.meshWorldSpheres = new Map(); // uuid -> THREE.Sphere
 
-    // Generators data structure (for cover opening animations)
     this.generators = [];
     this.objectMap = new Map();
 
@@ -36,11 +52,11 @@ export class GeneratorInteractionManager {
     this.selectedRoot = null;
     this.selectedMesh = null;
     this.selectedMetadata = null;
-    this.controllerBrowseRoot = null;
 
     this.lastRaycastTime = 0;
-    this.raycastThrottleMs = 20; // 50 Hz raycast sampling prevents frame drops
+    this.raycastThrottleMs = 20; // 50 Hz raycast sampling
     this.cachedIntersection = null;
+    this.controllerActive = false;
 
     // Tooltip DOM Elements
     this.hoverTooltip = document.getElementById('hover-label');
@@ -97,11 +113,6 @@ export class GeneratorInteractionManager {
     this.clearHover();
   }
 
-  /**
-   * Two-Stage Picking Implementation:
-   * 1. Broad Phase: Fast ray vs precomputed world bounding spheres test on all interactive objects
-   * 2. Narrow Phase: Exact triangle raycasting only against candidate meshes sorted by distance
-   */
   getIntersection(force = false) {
     if (!this.pointerActive) return null;
     const now = performance.now();
@@ -112,7 +123,7 @@ export class GeneratorInteractionManager {
     this.lastRaycastTime = now;
     this.raycaster.setFromCamera(this.pointer, this.camera);
 
-    // Stage 1: Broad Phase Candidate Detection
+    // Stage 1: Broad Phase Candidate Detection against monitored assets only
     const ray = this.raycaster.ray;
     const candidates = [];
 
@@ -132,11 +143,10 @@ export class GeneratorInteractionManager {
       return null;
     }
 
-    // Sort coarse candidates by distance along ray
     candidates.sort((a, b) => a.distSq - b.distSq);
     const candidateMeshes = candidates.map(c => c.mesh);
 
-    // Stage 2: Narrow Phase Exact Component Geometry Intersection
+    // Stage 2: Narrow Phase Exact Triangle Raycast on candidate meshes
     const intersects = this.raycaster.intersectObjects(candidateMeshes, false);
     this.cachedIntersection = intersects.length > 0 ? intersects[0] : null;
 
@@ -171,7 +181,6 @@ export class GeneratorInteractionManager {
   selectMesh(mesh) {
     if (!mesh) return;
 
-    // Resolve component root
     let root = mesh.userData?.componentRoot || mesh;
     const metadata = this.componentLookup.get(mesh.uuid) || resolveComponentMetadata(root);
 
@@ -198,12 +207,39 @@ export class GeneratorInteractionManager {
     this.selectedMesh = mesh;
     this.selectedMetadata = metadata;
 
-    // Focus component in ComponentManager (triggers isolated blueprint context & physical expansion)
+    // Focus component in ComponentManager (triggers physical expansion + 2D blueprint context)
     this.componentManager.setFocusedComponent(root);
 
     window.dispatchEvent(new CustomEvent('digital-twin-selection', {
       detail: { component: root, metadata, locked: true }
     }));
+  }
+
+  /**
+   * Center reticle raycast for controller selection when no mouse pointer is moving
+   */
+  selectCenterTarget() {
+    this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+    const ray = this.raycaster.ray;
+    const candidates = [];
+
+    for (let i = 0; i < this.interactiveObjects.length; i++) {
+      const mesh = this.interactiveObjects[i];
+      if (!mesh.visible) continue;
+
+      const sphere = this.meshWorldSpheres.get(mesh.uuid);
+      if (sphere && ray.intersectsSphere(sphere)) {
+        candidates.push({ mesh, distSq: ray.origin.distanceToSquared(sphere.center) });
+      }
+    }
+
+    candidates.sort((a, b) => a.distSq - b.distSq);
+    const candidateMeshes = candidates.map(c => c.mesh);
+    const intersects = this.raycaster.intersectObjects(candidateMeshes, false);
+
+    if (intersects.length > 0) {
+      this.selectMesh(intersects[0].object);
+    }
   }
 
   selectByName(name) {
@@ -334,20 +370,47 @@ export class GeneratorInteractionManager {
       this.generators.push(genObj);
     });
 
-    // 3. Build Two-Stage Picking Interactive Index
+    // 3. Register ONLY the 32 Monitored Engineering Assets into interactiveObjects
     model.updateMatrixWorld(true);
+
+    const isMonitored = (obj) => {
+      if (!obj) return false;
+      if (MONITORED_ASSET_NAMES.has(obj.name)) return true;
+      let curr = obj.parent;
+      while (curr && curr !== model) {
+        if (MONITORED_ASSET_NAMES.has(curr.name)) return true;
+        curr = curr.parent;
+      }
+      return false;
+    };
 
     model.traverse((child) => {
       if (!child.isMesh) return;
-      if (child.name === 'CHP' || child.name === 'CHP (1)' || child.name === 'Body210') return;
+
+      // STRICT FILTER: Only register meshes belonging to the 32 monitored assets
+      if (!isMonitored(child)) return;
 
       if (!child.geometry.boundingSphere) child.geometry.computeBoundingSphere();
 
       const worldSphere = child.geometry.boundingSphere.clone();
       worldSphere.applyMatrix4(child.matrixWorld);
 
-      const metadata = child.userData.metadata || resolveComponentMetadata(child, worldSphere.center);
+      // Find top monitored parent name
+      let monitoredName = child.name;
+      if (!MONITORED_ASSET_NAMES.has(monitoredName)) {
+        let curr = child.parent;
+        while (curr && curr !== model) {
+          if (MONITORED_ASSET_NAMES.has(curr.name)) {
+            monitoredName = curr.name;
+            break;
+          }
+          curr = curr.parent;
+        }
+      }
+
+      const metadata = resolveComponentMetadata({ name: monitoredName }, worldSphere.center);
       child.userData.metadata = metadata;
+      child.userData.monitoredName = monitoredName;
 
       this.interactiveObjects.push(child);
       this.componentLookup.set(child.uuid, metadata);
@@ -355,13 +418,12 @@ export class GeneratorInteractionManager {
       this.meshWorldSpheres.set(child.uuid, worldSphere);
     });
 
-    console.log(`✓ Two-Stage Picking Initialized: ${this.interactiveObjects.length} interactive components indexed.`);
+    console.log(`✓ Filtered Two-Stage Picking Initialized: ${this.interactiveObjects.length} meshes across 32 monitored assets.`);
   }
 
   browseByName(name) {
     const target = this.objectMap.get(name);
     if (!target) return;
-    this.controllerBrowseRoot = target;
     this.domElement.style.cursor = 'pointer';
 
     let mesh = target.isMesh ? target : null;
@@ -374,7 +436,7 @@ export class GeneratorInteractionManager {
         setMeshHoverState(this.hoveredMesh, false, Boolean(this.selectedRoot));
       }
       this.hoveredMesh = mesh;
-      this.hoveredMetadata = this.componentLookup.get(mesh.uuid) || mesh.userData?.metadata;
+      this.hoveredMetadata = this.componentLookup.get(mesh.uuid) || mesh.userData?.metadata || resolveComponentMetadata(target);
       setMeshHoverState(mesh, true, Boolean(this.selectedRoot));
 
       if (this.hoverTooltip && this.hoveredMetadata) {
@@ -386,8 +448,12 @@ export class GeneratorInteractionManager {
     }
   }
 
+  setControllerActive(active) {
+    this.controllerActive = active;
+  }
+
   update(delta) {
-    // 1. Two-Stage Picking Hover Evaluation
+    // 1. Hover Evaluation (Only against monitored components)
     if (this.pointerActive) {
       const intersection = this.getIntersection();
 
@@ -395,7 +461,6 @@ export class GeneratorInteractionManager {
         const hitMesh = intersection.object;
 
         if (this.hoveredMesh !== hitMesh) {
-          // Clear previous hover cleanly without mutating other objects
           if (this.hoveredMesh) {
             const isSelected = this.selectedRoot && (this.hoveredMesh === this.selectedMesh || this.componentManager.isDescendantOf(this.hoveredMesh, this.selectedRoot));
             if (!isSelected) {
@@ -425,9 +490,64 @@ export class GeneratorInteractionManager {
           this.clearHover();
         }
       }
+    } else if (this.controllerActive) {
+      // Controller Center-Aim Raycast
+      const now = performance.now();
+      if (now - this.lastRaycastTime >= this.raycastThrottleMs) {
+        this.lastRaycastTime = now;
+        this.raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+        const ray = this.raycaster.ray;
+        const candidates = [];
+
+        for (let i = 0; i < this.interactiveObjects.length; i++) {
+          const mesh = this.interactiveObjects[i];
+          if (!mesh.visible) continue;
+
+          const sphere = this.meshWorldSpheres.get(mesh.uuid);
+          if (sphere && ray.intersectsSphere(sphere)) {
+            candidates.push({ mesh, distSq: ray.origin.distanceToSquared(sphere.center) });
+          }
+        }
+
+        if (candidates.length > 0) {
+          candidates.sort((a, b) => a.distSq - b.distSq);
+          const candidateMeshes = candidates.map(c => c.mesh);
+          const intersects = this.raycaster.intersectObjects(candidateMeshes, false);
+          if (intersects.length > 0) {
+            const hitMesh = intersects[0].object;
+            if (this.hoveredMesh !== hitMesh) {
+              if (this.hoveredMesh) {
+                const isSelected = this.selectedRoot && (this.hoveredMesh === this.selectedMesh || this.componentManager.isDescendantOf(this.hoveredMesh, this.selectedRoot));
+                if (!isSelected) {
+                  setMeshHoverState(this.hoveredMesh, false, Boolean(this.selectedRoot));
+                }
+              }
+
+              this.hoveredMesh = hitMesh;
+              this.hoveredMetadata = this.componentLookup.get(hitMesh.uuid) || hitMesh.userData?.metadata;
+
+              const isSelected = this.selectedRoot && (hitMesh === this.selectedMesh || this.componentManager.isDescendantOf(hitMesh, this.selectedRoot));
+              if (!isSelected) {
+                setMeshHoverState(hitMesh, true, Boolean(this.selectedRoot));
+              }
+
+              if (this.hoverTooltip && this.hoveredMetadata) {
+                if (this.tooltipTitle) this.tooltipTitle.textContent = this.hoveredMetadata.displayName;
+                if (this.tooltipState) this.tooltipState.textContent = `${this.hoveredMetadata.room.toUpperCase()} · ${this.hoveredMetadata.subsystem.toUpperCase()}`;
+                this.hoverTooltip.classList.remove('hidden');
+                this.positionTooltip(window.innerWidth * 0.5, window.innerHeight * 0.5);
+              }
+            }
+          } else {
+            if (this.hoveredMesh) this.clearHover();
+          }
+        } else {
+          if (this.hoveredMesh) this.clearHover();
+        }
+      }
     }
 
-    // 2. Animate Generator Enclosure Open / Close
+    // 2. Animate Generator Enclosures
     this.generators.forEach((gen) => {
       const isSelected = this.selectedRoot && gen.components.includes(this.selectedRoot);
       const shouldOpen = gen.isManuallyOpened || isSelected;

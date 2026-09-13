@@ -1,0 +1,8 @@
+# Render static site — Bharti Digital Twin (Animation)
+# Root directory in Render dashboard: Digital_Twin_Final/Animation
+services:
+  - type: web
+    name: bharti-digital-twin-animation
+    runtime: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist

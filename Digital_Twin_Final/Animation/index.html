@@ -13,40 +13,64 @@
   <!-- UI Overlay -->
   <div id="ui-container">
     <aside id="asset-navigator" class="asset-navigator">
-      <div class="navigator-heading">BHARTI FACILITY ASSETS</div>
-      <details open><summary>CHP Generation Room <span>04</span></summary><div class="asset-list">
+      <div class="navigator-heading">FACILITY MONITORING ASSETS</div>
+
+      <!-- Section 1: CHP Generation Room (18 assets) -->
+      <details open class="asset-section" data-section="chp"><summary>1. CHP Room <span>18</span></summary><div class="asset-list">
+        <div class="asset-unit-label">CHP UNIT 1</div>
         <button data-asset="EngineCore">Unit 1 · Engine Core</button>
         <button data-asset="BearingSystem">Unit 1 · Bearing System</button>
+        <button data-asset="LubricationSystem">Unit 1 · Lubrication System</button>
         <button data-asset="CoolingSystem">Unit 1 · Cooling System</button>
-        <button data-asset="GeneratorSystem">Unit 1 · Alternator System</button>
+        <button data-asset="GeneratorSystem">Unit 1 · Generator System</button>
+        <button data-asset="FuelSystem">Unit 1 · Fuel System</button>
+
+        <div class="asset-unit-label">CHP UNIT 2</div>
         <button data-asset="EngineCore1">Unit 2 · Engine Core</button>
+        <button data-asset="BearingSystem1">Unit 2 · Bearing System</button>
+        <button data-asset="LubricationSystem1">Unit 2 · Lubrication System</button>
+        <button data-asset="CoolingSystem1">Unit 2 · Cooling System</button>
+        <button data-asset="GeneratorSystem1">Unit 2 · Generator System</button>
+        <button data-asset="FuelSystem1">Unit 2 · Fuel System</button>
+
+        <div class="asset-unit-label">CHP UNIT 3</div>
         <button data-asset="EngineCore2">Unit 3 · Engine Core</button>
+        <button data-asset="BearingSystem2">Unit 3 · Bearing System</button>
+        <button data-asset="LubricationSystem2">Unit 3 · Lubrication System</button>
+        <button data-asset="CoolingSystem2">Unit 3 · Cooling System</button>
+        <button data-asset="GeneratorSystem2">Unit 3 · Generator System</button>
+        <button data-asset="FuelSystem2">Unit 3 · Fuel System</button>
       </div></details>
-      <details open><summary>Water Management <span>08</span></summary><div class="asset-list">
-        <button data-asset="WaterPump">Freshwater Lake Pump</button>
-        <button data-asset="ElectricMotor">Intake Pump Motor</button>
+
+      <!-- Section 2: Water Management (7 assets) -->
+      <details open class="asset-section" data-section="water"><summary>2. Water Management <span>07</span></summary><div class="asset-list">
+        <div class="asset-unit-label">FRESHWATER LAKE PUMP</div>
+        <button data-asset="WaterPump">Lake Intake Pump</button>
+        <button data-asset="ElectricMotor">Pump Drive Motor</button>
+        <button data-asset="FlexibleCoupling">Shaft Bearing / Coupling</button>
+
+        <div class="asset-unit-label">RO FILTRATION SYSTEM</div>
         <button data-asset="HighPressureFeedPump">RO High-Pressure Pump</button>
-        <button data-asset="ROMembraneBank">RO Membrane Bank A</button>
-        <button data-asset="PreFilterBank">Pre-Filter Bank</button>
+        <button data-asset="ROMembraneBank">RO Membrane Bank</button>
+        <button data-asset="PreFilterBank">Cartridge Pre-Filter</button>
         <button data-asset="FeedSuctionPiping">RO Valve &amp; Piping Network</button>
-        <button data-asset="PrimaryFilter">Primary Sand Filter</button>
-        <button data-asset="CIPChemicalLoop">CIP Sanitization Loop</button>
       </div></details>
-      <details><summary>Sewage Management <span>04</span></summary><div class="asset-list">
-        <button data-asset="ProcessDischargeLoop">Process Effluent Line</button>
-        <button data-asset="RejectConcentrateLoop">RO Reject Concentrate Loop</button>
-        <button data-asset="InstrumentationAndDrain">Drain Instrumentation</button>
-        <button data-asset="InstrumentationDrainNetwork">Sanitary Graywater Network</button>
+
+      <!-- Section 3: Sewage Management (3 assets) -->
+      <details open class="asset-section" data-section="sewage"><summary>3. Sewage Management <span>03</span></summary><div class="asset-list">
+        <div class="asset-unit-label">WASTEWATER RECYCLING</div>
+        <button data-asset="ProcessDischargeLoop">Process Discharge Pump</button>
+        <button data-asset="RejectConcentrateLoop">Reject Concentrate Filter</button>
+        <button data-asset="InstrumentationDrainNetwork">Drain &amp; Valve Network</button>
       </div></details>
-      <details><summary>Data &amp; Telecom Centre <span>08</span></summary><div class="asset-list">
-        <button data-asset="Data+Center.obj">Station Compute Rack A</button>
-        <button data-asset="Box01">Primary Core Network Cabinet</button>
-        <button data-asset="Box02">Telemetry &amp; SCADA Cabinet</button>
-        <button data-asset="GeoSphere02">3.8m Satellite Reflector</button>
-        <button data-asset="LNB">Satellite LNB Downconverter</button>
-        <button data-asset="AzimuthDrive">Azimuth Turntable Drive</button>
-        <button data-asset="ElevationDrive">Elevation Tilt Actuator</button>
-        <button data-asset="DriveMotor">Synchronous Tracking Motor</button>
+
+      <!-- Section 4: Data & Telecom Centre (4 assets) -->
+      <details open class="asset-section" data-section="telecom"><summary>4. Data &amp; Telecom Centre <span>04</span></summary><div class="asset-list">
+        <div class="asset-unit-label">MECHANICAL DRIVES</div>
+        <button data-asset="AzimuthDrive">Azimuth Drive</button>
+        <button data-asset="ElevationDrive">Elevation Drive</button>
+        <button data-asset="Gearbox">Planetary Gearbox</button>
+        <button data-asset="DriveMotor">Drive Motor</button>
       </div></details>
     </aside>
 
@@ -62,11 +86,15 @@
           <span id="system-health-text" class="system-health-text">SYSTEM HEALTH 100% &bull; NORMAL</span>
         </div>
       </div>
-      <p class="hud-instruction">Hover any component for telemetry preview &bull; Click to lock &amp; inspect &bull; Drag to orbit &bull; ESC to reset</p>
+      <p class="hud-instruction">Hover monitored equipment &bull; Click or press A to expand in 3D &bull; ESC to reset</p>
     </header>
 
     <!-- Top Right Controls: Quality & Debug Toggle -->
     <div class="hud-top-right-tools">
+      <button id="component-status-btn" class="component-status-btn" title="Inspect Failed Components (Red Gradient Anomaly)">
+        <span class="status-btn-dot"></span>
+        <span id="component-status-btn-text">COMPONENT STATUS</span>
+      </button>
       <div class="quality-selector" aria-label="Visual Quality Presets">
         <span class="tool-label">QUALITY</span>
         <button class="quality-btn active" data-quality="HIGH">HIGH</button>
@@ -82,7 +110,7 @@
       <div class="debug-row"><span>FPS:</span><strong id="dbg-fps">60</strong></div>
       <div class="debug-row"><span>Draw Calls:</span><strong id="dbg-draw-calls">0</strong></div>
       <div class="debug-row"><span>Triangles:</span><strong id="dbg-triangles">0</strong></div>
-      <div class="debug-row"><span>Interactive Meshes:</span><strong id="dbg-interactive-objs">0</strong></div>
+      <div class="debug-row"><span>Monitored Assets:</span><strong id="dbg-interactive-objs">32</strong></div>
       <div class="debug-row"><span>Selected:</span><strong id="dbg-selected">None</strong></div>
       <div class="debug-row"><span>Subsystem:</span><strong id="dbg-subsystem">All Systems</strong></div>
     </div>
@@ -92,72 +120,57 @@
       <span id="selection-text">BHARTI RESEARCH STATION · DIGITAL TWIN READY</span>
     </div>
 
-    <!-- Smooth Cursor-Following Tooltip -->
+    <!-- Smooth Cursor-Following Tooltip for Monitored Assets -->
     <div id="hover-label" class="hover-label hidden">
-      <span class="hover-label-kicker">TELEMETRY PREVIEW</span>
+      <span class="hover-label-kicker">MONITORED ASSET</span>
       <strong id="hover-label-title">COMPONENT</strong>
       <span id="hover-label-state">CLICK TO INSPECT</span>
     </div>
 
-    <!-- Floating Top-Right Sensor & Predictive Maintenance Panel -->
+    <!-- Component Info Panel (Real ML Telemetry: 5 Exact Fields Only) -->
     <div id="sensor-panel" class="sensor-panel hidden">
       <div class="sensor-header">
         <h2 id="sensor-title">EQUIPMENT NAME</h2>
         <span id="sensor-subtitle" class="sensor-subtitle">Subsystem</span>
       </div>
-      <div class="sensor-status">
-        <div class="status-badge">
-          <span id="status-dot" class="status-dot"></span>
-          <span id="sensor-status-text" class="status-text">NORMAL</span>
-        </div>
-        <div class="live-indicator">
-          <span class="live-dot"></span>
-          <span class="live-text">LIVE</span>
-        </div>
-      </div>
-      <div id="sensor-metrics" class="sensor-metrics">
-        <!-- Dynamically populated rows -->
-      </div>
-      
-      <!-- Predictive Maintenance Intelligence Section -->
-      <div id="predictive-section" class="predictive-section">
-        <div class="health-score-container">
-          <div class="health-label-row">
-            <span class="health-title">HEALTH SCORE</span>
-            <span id="health-score-val" class="health-score-val">100%</span>
-          </div>
-          <div class="health-bar-bg">
-            <div id="health-bar-fill" class="health-bar-fill" style="width: 100%;"></div>
-          </div>
-        </div>
-        <div class="condition-row">
-          <span class="condition-label">CONDITION</span>
-          <span id="condition-state-val" class="condition-state-val">HEALTHY</span>
-        </div>
-        <div class="rul-row">
-          <span id="rul-val" class="rul-val">&gt; 2500 hrs (SIMULATED RUL)</span>
-        </div>
-        <div class="insight-box">
-          <div class="insight-title">MAINTENANCE INSIGHT</div>
-          <p id="insight-text" class="insight-text">Operating within standard polar engineering limits.</p>
-        </div>
-      </div>
-    </div>
 
-    <!-- Floating Bottom-Left Component Description Card -->
-    <div id="description-card" class="description-card hidden">
-      <div class="description-header">
-        <h3 id="description-title">EQUIPMENT TITLE</h3>
-        <span id="description-subtitle" class="description-subtitle">Category</span>
+      <div class="component-info-grid">
+        <div class="info-row">
+          <span class="info-label">COMPONENT ID</span>
+          <strong id="component-id-val" class="info-value font-mono">C001</strong>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">CURRENT STATE</span>
+          <span class="info-badge">
+            <span id="state-badge-dot" class="status-dot"></span>
+            <strong id="condition-state-val" class="info-value font-mono">NORMAL</strong>
+          </span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">RUL</span>
+          <strong id="rul-val" class="info-value font-mono">55 Days</strong>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">SENSOR FAILURE</span>
+          <span class="info-badge">
+            <span id="sensor-status-dot" class="status-dot"></span>
+            <strong id="sensor-failure-val" class="info-value font-mono">NO</strong>
+          </span>
+        </div>
+
+        <div class="info-row">
+          <span class="info-label">CURRENT SENSOR</span>
+          <strong id="current-sensor-val" class="info-value font-mono">PRIMARY</strong>
+        </div>
       </div>
-      <p id="description-text" class="description-text">
-        Bharti Antarctic Research Station engineered system component.
-      </p>
     </div>
 
     <div class="mode-key" aria-label="Inspection legend">
-      <span><i class="key-dot key-live"></i> METALLIC TWIN</span>
-      <span><i class="key-dot key-blueprint"></i> CONTEXT FADE</span>
+      <span><i class="key-dot key-live"></i> 3D METALLIC ASSET</span>
+      <span><i class="key-dot key-blueprint"></i> BLUEPRINT CONTEXT</span>
       <kbd>ESC</kbd><em>reset</em>
       <kbd>~</kbd><em>diagnostics</em>
     </div>
@@ -170,7 +183,7 @@
       <div class="spinner"></div>
       <h2 id="loading-title">BHARTI RESEARCH STATION</h2>
       <p class="loading-sub">INITIALIZING CINEMATIC DIGITAL TWIN</p>
-      <p id="loading-status">Loading compressed facility geometry...</p>
+      <p id="loading-status">Loading facility geometry...</p>
       <div class="progress-bar-container">
         <div id="progress-bar" class="progress-bar"></div>
       </div>

@@ -133,6 +133,16 @@ html, body {
   padding: 0.2rem 0.3rem 0.5rem;
 }
 
+.asset-unit-label {
+  font-size: 0.58rem;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.1em;
+  font-family: var(--font-mono);
+  padding: 0.35rem 0.55rem 0.15rem;
+  text-transform: uppercase;
+}
+
 .asset-list button {
   width: 100%;
   padding: 0.42rem 0.55rem;
@@ -322,6 +332,84 @@ html, body {
   box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
 }
 
+/* Component Status Button with Anomaly Pulse */
+.component-status-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  color: #94a3b8;
+  font-size: 0.62rem;
+  font-weight: 800;
+  font-family: var(--font-mono);
+  padding: 0.42rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+  transition: 0.2s ease;
+}
+
+.component-status-btn .status-btn-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.component-status-btn.has-fault {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+}
+
+.component-status-btn.has-fault .status-btn-dot {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+  animation: pulse-red 1.6s infinite;
+}
+
+.component-status-btn.active-anomaly {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), rgba(127, 29, 29, 0.5));
+  border-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.45);
+}
+
+/* Sidebar Section Anomaly Gradient Indicator */
+details.has-anomaly summary {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.22) 0%, rgba(127, 29, 29, 0.10) 65%, transparent 100%) !important;
+  border-left: 3px solid #ef4444 !important;
+  color: #fca5a5 !important;
+}
+
+details.has-anomaly summary::after {
+  content: 'ANOMALY';
+  font-size: 0.52rem;
+  font-family: var(--font-mono);
+  background: rgba(239, 68, 68, 0.28);
+  border: 1px solid #ef4444;
+  color: #fecaca;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  margin-left: auto;
+  margin-right: 0.45rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  animation: pulse-red 1.8s infinite;
+}
+
+button.is-failed-asset {
+  background: linear-gradient(90deg, rgba(239, 68, 68, 0.18), transparent 85%);
+  border-left: 2px solid #ef4444;
+  color: #fca5a5 !important;
+}
+
+@keyframes pulse-red {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(0.96); }
+}
+
 /* Diagnostic Metrics HUD */
 .debug-hud {
   position: absolute;
@@ -491,10 +579,50 @@ html, body {
   font-family: var(--font-mono);
 }
 
+/* Streamlined 5-Field Component Info Panel */
+.component-info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.55rem 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.info-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  font-family: var(--font-mono);
+}
+
+.info-value {
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #f1f5f9;
+}
+
+.info-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .sensor-status {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
 .status-badge {
@@ -505,6 +633,34 @@ html, body {
   font-weight: 700;
   font-family: var(--font-mono);
   color: #e2e8f0;
+}
+
+.sensor-health-pill, .active-sensor-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.62rem;
+  font-family: var(--font-mono);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.18rem 0.48rem;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+}
+
+.active-sensor-pill .pill-label {
+  color: #64748b;
+  font-size: 0.55rem;
+}
+
+.asset-state-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 6px;
+  flex-shrink: 0;
+  transition: background-color 0.25s, box-shadow 0.25s;
 }
 
 .status-dot {
